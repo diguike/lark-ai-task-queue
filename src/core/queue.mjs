@@ -29,6 +29,8 @@ export function projectTask(task, tasklistName, tasklistGuid) {
     description: task.description,
     url: task.url,
     repeat_rule: task.repeat_rule || '',
+    start_ts: Number(task.start?.timestamp) || 0, // 飞书"开始时间"(ms),0=未设
+    start_all_day: Boolean(task.start?.is_all_day), // 开始时间是否只精确到日期
   };
 }
 
@@ -80,12 +82,14 @@ export function selectActionable(entries, opts, max) {
  */
 export function pullQueue() {
   const max = getConfig('execution.max_tasks_per_run', 3);
+  const now = Date.now();
   const opts = {
     markers: getConfig('recurring.markers', []),
     sentinel: sentinel(),
     marker: confirmMarker(),
     doneMark: successMark(),
-    today: localDate(Date.now(), timezone()),
+    now,
+    today: localDate(now, timezone()),
     tz: timezone(),
   };
   const entries = collectPending().map((item) => ({

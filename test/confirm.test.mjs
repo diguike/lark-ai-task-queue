@@ -6,6 +6,7 @@ import {
   recurringDoneOn,
   isRecurringText,
   isActionable,
+  startReached,
 } from '../src/core/confirm.mjs';
 
 const SENT = '🤖';
@@ -114,8 +115,35 @@ test('isRecurringText: 命中标记', () => {
   assert.equal(isRecurringText(markers, '一次性任务', ''), false);
 });
 
+test('startReached: 未设开始时间 → 永远视为已到', () => {
+  assert.equal(startReached(0, false, Date.now(), 'UTC'), true);
+  assert.equal(startReached(undefined, false, Date.now(), 'UTC'), true);
+});
+
+test('startReached: 精确到时间 → now>=start 才到', () => {
+  const start = Date.UTC(2026, 5, 22, 10, 0, 0);
+  assert.equal(startReached(start, false, start - 1000, 'UTC'), false); // 早一秒
+  assert.equal(startReached(start, false, start, 'UTC'), true);
+  assert.equal(startReached(start, false, start + 1000, 'UTC'), true);
+});
+
+test('startReached: 精确到日期(is_all_day)→ 当天起算', () => {
+  const startDay = Date.UTC(2026, 5, 23, 0, 0, 0); // 6/23
+  assert.equal(startReached(startDay, true, Date.UTC(2026, 5, 22, 23, 0, 0), 'UTC'), false); // 6/22 当晚
+  assert.equal(startReached(startDay, true, Date.UTC(2026, 5, 23, 1, 0, 0), 'UTC'), true); // 6/23 凌晨
+});
+
+test('isActionable: 开始时间未到 → 不可执行(即便无确认/非重复)', () => {
+  const now = Date.UTC(2026, 5, 22, 12, 0, 0);
+  const opts = { markers: [], sentinel: SENT, marker: MARK, doneMark: DONE, now, today: '2026-06-22', tz: 'UTC' };
+  const future = { summary: '稍后', description: '', repeat_rule: '', start_ts: now + 3600_000, start_all_day: false };
+  const past = { summary: '可做', description: '', repeat_rule: '', start_ts: now - 3600_000, start_all_day: false };
+  assert.equal(isActionable(future, [], opts), false);
+  assert.equal(isActionable(past, [], opts), true);
+});
+
 test('isActionable: waiting 不可执行,confirmed/none 可执行', () => {
-  const opts = { markers: [], sentinel: SENT, marker: MARK, doneMark: DONE, today: '2026-06-22', tz: 'UTC' };
+  const opts = { markers: [], sentinel: SENT, marker: MARK, doneMark: DONE, now: Date.UTC(2026, 5, 22, 12, 0, 0), today: '2026-06-22', tz: 'UTC' };
   const item = { summary: '调研', description: '', repeat_rule: '' };
   const waiting = normalizeComments([{ content: `${SENT} ${MARK} 确认?`, created_at: '1000' }]);
   const confirmed = normalizeComments([

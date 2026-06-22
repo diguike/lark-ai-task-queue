@@ -7,6 +7,8 @@
 ## [Unreleased]
 
 ### Added
+- **尊重飞书"开始时间"**:设了开始时间的任务,到点前不会被执行(`queue pull` 预筛阶段
+  按 `start.timestamp` 过滤;`is_all_day` 则按时区当天起算)。未设开始时间的任务行为不变。
 - **自然语言配置 `larkaq config nl "<意图>"`**:把意图交给 Claude,按配置 Schema 翻成结构化改动,
   逐项过 `validateConfig` + 白名单闸门再写入(非法值/越权 path 一律拒绝),打印 before→after
   与还原命令;`--dry-run` 可预览。纯逻辑(`extractJsonObject` / `vetChanges`)有单测。

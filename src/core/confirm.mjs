@@ -65,13 +65,30 @@ export function isRecurringText(markers, text, repeatRule) {
 }
 
 /**
+ * 飞书"开始时间"是否已到(纯函数)。未设开始时间 → 永远视为已到。
+ * - 精确到时间:now >= 开始时间戳;
+ * - 精确到日期(is_all_day):当天(按 tz)>= 开始日期即可。
+ * @param {number} startTs 开始时间戳(ms),0/falsy 表示未设
+ * @param {boolean} isAllDay 是否只精确到日期
+ * @param {number} nowMs 当前时间戳(ms)
+ * @param {string|undefined} tz 时区
+ */
+export function startReached(startTs, isAllDay, nowMs, tz) {
+  if (!startTs) return true;
+  if (isAllDay) return localDate(nowMs, tz) >= localDate(startTs, tz);
+  return nowMs >= startTs;
+}
+
+/**
  * 给定一条任务及其评论,判断本轮是否需要唤起 claude 处理(纯函数)。
  * 跳过:等待人工确认(waiting)、重复任务且今天已成功干过。
  * @param {{summary:string, description?:string, repeat_rule?:string}} item
  * @param {{content:string, created_at:number}[]} comments 升序评论
  */
 export function isActionable(item, comments, opts) {
-  const { markers, sentinel: sent, marker, doneMark, today, tz } = opts;
+  const { markers, sentinel: sent, marker, doneMark, now, today, tz } = opts;
+  // 飞书"开始时间"未到 → 本轮不执行,等到点的下一轮再说。
+  if (!startReached(item.start_ts, item.start_all_day, now, tz)) return false;
   if (evaluateConfirmation(comments, marker, sent).state === 'waiting') return false;
   const text = `${item.summary} ${item.description ?? ''}`;
   if (isRecurringText(markers, text, item.repeat_rule) && recurringDoneOn(comments, sent, marker, doneMark, today, tz)) {

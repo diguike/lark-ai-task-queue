@@ -30,7 +30,8 @@ larkaq notify <markdown>               # 发本轮飞书汇总
 ```bash
 larkaq queue pull
 ```
-输出未完成任务 JSON 数组,每项 `{guid, summary, description, url, repeat_rule, tasklist_name}`。
+输出未完成任务 JSON 数组,每项 `{guid, summary, description, url, repeat_rule, tasklist_name, start_ts, start_all_day}`。
+- 已自动过滤掉**未到飞书"开始时间"**的任务(设了开始时间的任务,到点前不会出现在队列里)。
 - 若为 `[]`:`larkaq log "queue empty"`,**仍发一条** `larkaq notify "🤖 本轮无待办,队列为空。"`(可选,或静默),结束。不要造任务。
 
 ### 2. 逐条处理 —— 对每条任务,先判型再执行

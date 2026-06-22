@@ -61,6 +61,8 @@ off-peak instead of cramming it into the hours you're staring at the screen.
 - **Isolation & safety**: only touches `AI`-prefixed lists; never your other tasks.
 - **Async human confirmation**: when a task needs a decision, it comments a question and parks; you
   reply whenever, and it resumes next round.
+- **Respects start time**: a task with a Lark "start time" set is **not run until that time arrives**;
+  it enters the queue only on the first round at/after its start. Use it as a scheduled task.
 - **Recurring/daily tasks**: tasks marked `[每日]`/`[daily]` only get an appended comment when done
   (never crossed off), at most once per day (timezone configurable).
 - **Per-round Lark push**: a summary DM after each round (done/awaiting/failed + doc links); channel

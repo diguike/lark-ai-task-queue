@@ -33,7 +33,7 @@ test('filterTasklists: 空输入安全', () => {
   assert.deepEqual(filterTasklists([], 'AI', []), []);
 });
 
-test('projectTask: 投影队列条目,补 repeat_rule 默认', () => {
+test('projectTask: 投影队列条目,补默认值并捕获开始时间', () => {
   const task = { guid: 't1', summary: '调研', description: 'd', url: 'http://x', repeat_rule: null };
   const row = projectTask(task, 'AI 队列', 'g1');
   assert.deepEqual(row, {
@@ -44,7 +44,16 @@ test('projectTask: 投影队列条目,补 repeat_rule 默认', () => {
     description: 'd',
     url: 'http://x',
     repeat_rule: '',
+    start_ts: 0,
+    start_all_day: false,
   });
+});
+
+test('projectTask: 解析飞书开始时间字段', () => {
+  const task = { guid: 't2', summary: 's', start: { timestamp: '1782000000000', is_all_day: true } };
+  const row = projectTask(task, 'AI', 'g');
+  assert.equal(row.start_ts, 1782000000000);
+  assert.equal(row.start_all_day, true);
 });
 
 const SEL_OPTS = {
@@ -52,6 +61,7 @@ const SEL_OPTS = {
   sentinel: '🤖',
   marker: '[AI-NEEDS-CONFIRM]',
   doneMark: '✅',
+  now: Date.UTC(2026, 5, 22, 12, 0, 0),
   today: '2026-06-22',
   tz: 'UTC',
 };
