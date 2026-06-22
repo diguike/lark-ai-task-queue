@@ -30,10 +30,6 @@ export function cmdDoctor() {
     has(c) ? pass(`${c} 已安装`) : fail(`${c} 缺失`);
   }
   pass(`node ${process.version}`);
-  // curl 仅 webhook 渠道需要,作为可选项检查。
-  if (getConfig('notify.channel', 'bot') === 'webhook') {
-    has('curl') ? pass('curl 已安装(webhook 用)') : note('curl 缺失,但 webhook 走 Node fetch,无妨');
-  }
 
   console.log('── 2. 飞书认证(lark-cli)──');
   const auth = authStatus();

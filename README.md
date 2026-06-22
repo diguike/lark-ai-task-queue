@@ -1,8 +1,25 @@
 # Lark AI Task Queue
 
+![node](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)
+![deps](https://img.shields.io/badge/dependencies-0-brightgreen)
+![tests](https://img.shields.io/badge/tests-node%3Atest-blue)
+![license](https://img.shields.io/badge/license-MIT-blue)
+![PRs welcome](https://img.shields.io/badge/PRs-welcome-orange)
+
+**简体中文** · [English](README.en.md)
+
 > 把**飞书任务清单**当成"寄给 AI 的待办队列"——你在专属清单里记一条任务,AI 定时拉取、自动执行,产出飞书文档,完成后回写评论并标记完成。
 >
 > *Turn a Feishu/Lark task list into an async work queue for an AI agent: it polls unfinished tasks on a schedule, does the work, ships a Lark Doc, and writes the result back to the task.*
+
+```mermaid
+flowchart LR
+    A["📱 飞书任务清单<br/>(名字以 AI 开头)"] -->|定时触发| B["larkaq run<br/>省 token 预筛"]
+    B -->|有活才唤起| C["claude -p<br/>执行任务"]
+    C --> D["📄 飞书文档"]
+    C -->|回写评论 + 标记完成| A
+    C -->|每轮小结| E["🔔 飞书推送"]
+```
 
 **核心理念**:复用成熟的 todo 工具(飞书任务)当数据源和界面,AI 只负责"定时拉取 + 执行 + 回写",不自研 todo 层。
 
@@ -183,7 +200,7 @@ lark-ai-task-queue/
 node --test test/      # 跑单测(零依赖,纯逻辑全覆盖)
 larkaq run --dry-run   # 端到端干跑(只预筛)
 ```
-核心逻辑(确认状态机、清单过滤、重复判定、时区计算)都是纯函数,见 `src/core/`,可直接单测无需 mock 飞书。
+核心逻辑(确认状态机、清单过滤、重复判定、时区计算)都是纯函数,见 `src/core/`,可直接单测无需 mock 飞书。模块依赖、数据流与状态机图见 **[ARCHITECTURE.md](ARCHITECTURE.md)**。
 
 ## ❓ FAQ
 

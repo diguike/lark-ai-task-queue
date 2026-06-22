@@ -3,9 +3,32 @@
   "version": "0.2.0",
   "description": "把飞书任务清单当作寄给 AI 的异步待办队列:claude 定时拉取、执行、产出飞书文档、回写。",
   "type": "module",
+  "author": "diguike",
+  "keywords": [
+    "feishu",
+    "lark",
+    "claude",
+    "claude-code",
+    "ai-agent",
+    "task-queue",
+    "automation",
+    "cli"
+  ],
   "bin": {
     "larkaq": "bin/larkaq"
   },
+  "files": [
+    "bin/",
+    "src/",
+    "prompts/",
+    "deploy/",
+    "config/config.example.json",
+    "README.md",
+    "README.en.md",
+    "DEPLOY.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=18"
   },

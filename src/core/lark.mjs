@@ -42,21 +42,26 @@ export function apiGet(path, params) {
 }
 
 /**
- * 翻页拉取:反复调用 buildArgs(pageToken) 直到 data.has_more 为 false,
- * 汇总所有 data.items。封掉"只取第一页/前 100 条"的漏数风险。
+ * 翻页汇总(纯逻辑,runner 可注入便于测试)。反复调用 runner(buildArgs(pageToken))
+ * 直到 data.has_more 为 false,汇总所有 data.items。封掉"只取第一页/前 100 条"的漏数风险。
+ * @param {(args: string[]) => any} runner 执行一次请求并返回解析后的响应
  * @param {(pageToken: string|undefined) => string[]} buildArgs
  */
-function runLarkPaged(buildArgs) {
+export function collectPaged(runner, buildArgs) {
   const items = [];
   let pageToken;
   let guard = 0;
   do {
-    const data = runLark(buildArgs(pageToken));
-    const page = dig(data, 'data.items') || [];
-    items.push(...page);
+    const data = runner(buildArgs(pageToken));
+    items.push(...(dig(data, 'data.items') || []));
     pageToken = dig(data, 'data.has_more') ? dig(data, 'data.page_token') : undefined;
   } while (pageToken && ++guard < 100); // guard 防御异常的无限翻页
   return items;
+}
+
+/** 用真实 runLark 翻页拉取。 */
+function runLarkPaged(buildArgs) {
+  return collectPaged(runLark, buildArgs);
 }
 
 // ── 高层操作 ────────────────────────────────────────────────────────────────

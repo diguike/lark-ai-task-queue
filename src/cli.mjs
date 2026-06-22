@@ -1,6 +1,9 @@
 // cli.mjs — 命令分发。把 argv 派发到 commands/*,统一错误处理与退出码。
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import { color } from './util.mjs';
+import { ROOT } from './core/config.mjs';
 import { cmdInstall } from './commands/install.mjs';
 import { cmdDoctor } from './commands/doctor.mjs';
 import { cmdConfig } from './commands/config.mjs';
@@ -62,10 +65,22 @@ const ROUTES = {
   notify: (a) => agent.cmdNotify(a),
 };
 
+function version() {
+  try {
+    return JSON.parse(readFileSync(resolve(ROOT, 'package.json'), 'utf8')).version ?? '0.0.0';
+  } catch {
+    return '0.0.0';
+  }
+}
+
 export async function main(argv) {
   const [cmd, ...args] = argv;
   if (!cmd || cmd === '-h' || cmd === '--help' || cmd === 'help') {
     console.log(HELP);
+    return 0;
+  }
+  if (cmd === '-v' || cmd === '--version' || cmd === 'version') {
+    console.log(version());
     return 0;
   }
   const route = ROUTES[cmd];
