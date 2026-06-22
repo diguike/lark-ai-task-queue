@@ -1,0 +1,48 @@
+{
+  "queue": {
+    "tasklist_name_prefix": "AI",
+    "tasklist_guids": [],
+    "state_file": "config/state.json",
+    "_comment_queue": "约定优于配置:清单名以 tasklist_name_prefix 开头的(大小写不敏感),都会被当作 AI 待办队列自动发现。无需手填 guid。tasklist_guids 是可选的强制白名单(非空时只认这些 guid,忽略前缀)。运行时把解析到的 name->guid 缓存到 state_file。"
+  },
+  "execution": {
+    "max_tasks_per_run": 3,
+    "poll_interval_minutes": 60,
+    "skip_completed": true,
+    "require_confirmation_for_risky": true,
+    "_comment_execution": "每次跑一轮最多处理几条;require_confirmation 控制高风险任务(删除/外发/花钱)是否先停下来等人确认。"
+  },
+  "confirmation": {
+    "needs_confirm_marker": "[AI-NEEDS-CONFIRM]",
+    "ai_sentinel": "🤖",
+    "_comment_confirmation": "异步人工确认:遇到需人工拍板的点,AI 评论以 ai_sentinel + needs_confirm_marker 开头并保留任务在队列(不完成)。下一轮先读评论,若该确认评论之后出现不以 ai_sentinel 开头的新评论(=你的回复),视为已确认并据此继续推进。AI 写的每条评论都以 ai_sentinel 开头,用于和你的回复区分。"
+  },
+  "recurring": {
+    "markers": [
+      "[每日]",
+      "[每天]",
+      "[daily]",
+      "[recurring]",
+      "[循环]"
+    ],
+    "cadence": "daily",
+    "_comment_recurring": "重复任务:标题或描述含上述任一标记(或任务设了飞书原生重复规则)的,做完后只追加一条结果评论、不标记完成。cadence=daily 表示每个自然日最多执行一次(靠检查当天是否已有 AI 结果评论防重)。"
+  },
+  "output": {
+    "create_lark_doc": true,
+    "doc_folder_token": "",
+    "writeback_link_as_comment": true,
+    "mark_task_done_on_success": true,
+    "_comment_output": "产出默认建飞书文档;doc_folder_token 指定文档落到哪个云空间文件夹(为空=默认位置);完成后把文档链接作为评论回写并标记任务完成(重复任务除外)。"
+  },
+  "notify": {
+    "channel": "bot",
+    "user_open_id": "",
+    "webhook_url": "",
+    "_comment_notify": "每轮结束发一条飞书汇总。channel 三选一:'off'=不推送;'bot'=同一个应用的机器人私聊你(填 user_open_id,用 lark-cli auth status 查 openId);'webhook'=飞书群里加'自定义机器人'拿到的 Webhook 地址(填 webhook_url,无需应用 scope/登录,开源最省心)。"
+  },
+  "logging": {
+    "local_log_dir": "logs",
+    "log_each_task": true
+  }
+}

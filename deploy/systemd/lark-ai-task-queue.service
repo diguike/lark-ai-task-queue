@@ -1,0 +1,13 @@
+# systemd service 模板(Linux 服务器,opt-in)。
+# 放到 ~/.config/systemd/user/ (用户级,推荐) 或 /etc/systemd/system/ (系统级)。
+# 把 __ROOT__ 换成项目绝对路径。配合同目录的 .timer 使用。
+[Unit]
+Description=Lark AI Task Queue — 跑一轮飞书 AI 任务队列
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=__ROOT__
+Environment=LARK_CLI_NO_PROXY=1
+ExecStart=/bin/bash __ROOT__/scripts/cron-run.sh

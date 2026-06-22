@@ -1,0 +1,23 @@
+# ── 实例配置 / 运行态(含 open_id、清单 guid 等个人数据,切勿提交)──
+config/config.json
+config/state.json
+
+# ── 运行产物 ──
+logs/*
+!logs/.gitkeep
+docs/*
+!docs/.gitkeep
+
+# ── 本地调度器残留 ──
+*.lock
+
+# ── 系统 / 编辑器 ──
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+
+# 注:LaunchAgent plist 装在 ~/Library/LaunchAgents/,本就不在仓库内。
+# 需要提交的模板在 config/config.example.json 与 deploy/ 下。

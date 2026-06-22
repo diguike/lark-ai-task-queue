@@ -1,0 +1,16 @@
+# systemd timer 模板(Linux 服务器,opt-in)。与 .service 同目录放置后:
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now lark-ai-task-queue.timer    # 启用
+#   systemctl --user list-timers                          # 查看
+#   systemctl --user disable --now lark-ai-task-queue.timer   # 停用
+# OnUnitActiveSec 改成与 config.poll_interval_minutes 一致。
+[Unit]
+Description=每 1 小时触发一次 Lark AI Task Queue
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=60min
+Persistent=true
+
+[Install]
+WantedBy=timers.target

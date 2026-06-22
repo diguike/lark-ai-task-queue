@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  macOS launchd 模板(opt-in,框架不会自动安装)。
+  把 __ROOT__ 替换为你的项目绝对路径,放到 ~/Library/LaunchAgents/ 后:
+    launchctl load  ~/Library/LaunchAgents/com.lark-ai-task-queue.plist   # 装载
+    launchctl unload ~/Library/LaunchAgents/com.lark-ai-task-queue.plist  # 卸载
+  StartInterval 单位为秒(下例 3600=60 分钟,改成与 config.poll_interval_minutes 一致)。
+  优点:登录后自动拉起、可配合 caffeinate 防睡眠,比裸 cron 更稳。
+-->
+<plist version="1.0">
+<dict>
+  <key>Label</key>            <string>com.lark-ai-task-queue</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>__ROOT__/scripts/cron-run.sh</string>
+  </array>
+  <key>StartInterval</key>    <integer>3600</integer>
+  <key>RunAtLoad</key>        <true/>
+  <key>WorkingDirectory</key> <string>__ROOT__</string>
+  <key>StandardOutPath</key>  <string>__ROOT__/logs/launchd.out</string>
+  <key>StandardErrorPath</key><string>__ROOT__/logs/launchd.err</string>
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>LARK_CLI_NO_PROXY</key><string>1</string>
+    <key>HOME</key><string>__HOME__</string>
+    <!-- 关键:把 claude/lark-cli 所在目录放最前面。用 `dirname "$(command -v claude)"` 查,
+         nvm 用户通常是 ~/.nvm/versions/node/<ver>/bin。否则 launchd 会找不到命令。 -->
+    <key>PATH</key><string>__NODE_BIN__:/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+</dict>
+</plist>
