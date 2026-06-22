@@ -161,7 +161,7 @@ Use `larkaq config set notify.channel webhook` — no hand-editing JSON.
 ## 🧪 Develop / test
 
 ```bash
-node --test test/      # run unit tests (zero deps, pure logic fully covered)
+node --test      # run unit tests (zero deps, pure logic fully covered)
 larkaq run --dry-run   # end-to-end dry run (prefilter only)
 ```
 Core logic (confirmation state machine, list filtering, recurrence, timezone) is pure functions in

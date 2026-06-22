@@ -17,7 +17,7 @@
 - **纯逻辑与 I/O 分离**:状态机、过滤、计数等放 `src/core/` 的纯函数(便于单测);spawn `lark-cli` 只在 `src/core/lark.mjs`。
 - 新增飞书调用统一走 `src/core/lark.mjs`;新 API 先 `lark-cli schema <svc>.<res>.<method>` 看参数,原生透传用 `lark-cli api`(见 `NOTES.md`)。
 - 改了行为先更新 `prompts/run-queue.md`(执行口径)与 `NOTES.md`(命令摸底)。
-- 给纯逻辑补单测;改了行为先让 `node --test test/` 全绿。
+- 给纯逻辑补单测;改了行为先让 `node --test` 全绿。
 
 ## 提 PR
 
@@ -27,7 +27,7 @@
 ## 本地验证(无副作用部分)
 
 ```bash
-node --test test/                # 跑单测(零依赖,纯逻辑全覆盖)
+node --test                # 跑单测(零依赖,纯逻辑全覆盖)
 node bin/larkaq --help           # 命令一览
 node bin/larkaq config list      # 看配置(脱敏)
 node bin/larkaq run --dry-run    # 看队列 + 预筛(不唤起 claude)

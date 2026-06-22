@@ -37,9 +37,10 @@ export function cmdDoctor() {
     fail('lark-cli auth status 无输出,先 lark-cli config init / auth login');
   } else {
     const ustat = dig(auth, 'identities.user.status') ?? 'none';
-    ustat === 'ready'
-      ? pass(`user 身份 ready (${dig(auth, 'identities.user.userName') ?? '?'})`)
-      : fail(`user 身份未就绪(${ustat}),跑 lark-cli auth login --scope ...`);
+    const uname = dig(auth, 'identities.user.userName') ?? '?';
+    if (ustat === 'ready') pass(`user 身份 ready (${uname})`);
+    else if (dig(auth, 'identities.user.openId')) note(`user 已登录(${uname},状态 ${ustat},token 将自动续期)`);
+    else fail(`user 身份未就绪(${ustat}),跑 lark-cli auth login --scope ...`);
     const bstat = dig(auth, 'identities.bot.status') ?? 'none';
     bstat === 'ready' ? pass('bot 身份 ready(推送用)') : note(`bot 身份未就绪(${bstat}),仅 channel=bot 推送需要`);
   }
@@ -54,7 +55,7 @@ export function cmdDoctor() {
     else if (ch === 'bot') {
       getConfig('notify.user_open_id', '')
         ? pass('推送 channel=bot,已填 user_open_id')
-        : note('channel=bot 但 user_open_id 为空');
+        : note('channel=bot 但 user_open_id 为空 → 运行 `larkaq install` 可自动写入你本人');
     } else if (ch === 'webhook') {
       getConfig('notify.webhook_url', '')
         ? pass('推送 channel=webhook,已填 webhook_url')

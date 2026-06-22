@@ -41,7 +41,7 @@
     "channel": "bot",
     "user_open_id": "",
     "webhook_url": "",
-    "_comment_notify": "每轮结束发一条飞书汇总。channel 三选一:'off'=不推送;'bot'=同一个应用的机器人私聊你(填 user_open_id,用 lark-cli auth status 查 openId);'webhook'=飞书群里加'自定义机器人'拿到的 Webhook 地址(填 webhook_url,无需应用 scope/登录,开源最省心)。"
+    "_comment_notify": "每轮结束发一条飞书汇总。channel 三选一:'off'=不推送;'bot'=同一个应用的机器人私聊你(user_open_id 在 `larkaq install` 登录后会自动写入你本人,无需手动查);'webhook'=飞书群里加'自定义机器人'拿到的 Webhook 地址(填 webhook_url,无需应用 scope/登录,开源最省心)。"
   },
   "logging": {
     "local_log_dir": "logs",

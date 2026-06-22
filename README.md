@@ -197,7 +197,7 @@ lark-ai-task-queue/
 ## 🧪 开发 / 测试
 
 ```bash
-node --test test/      # 跑单测(零依赖,纯逻辑全覆盖)
+node --test      # 跑单测(零依赖,纯逻辑全覆盖)
 larkaq run --dry-run   # 端到端干跑(只预筛)
 ```
 核心逻辑(确认状态机、清单过滤、重复判定、时区计算)都是纯函数,见 `src/core/`,可直接单测无需 mock 飞书。模块依赖、数据流与状态机图见 **[ARCHITECTURE.md](ARCHITECTURE.md)**。

@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [18, 20, 22]
+        node: [18, 20, 22, 24]  # 含新版 test runner(23+ 改了位置参数语义)
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,7 +22,7 @@ jobs:
         run: |
           for f in bin/larkaq larkaq $(find src -name '*.mjs'); do node --check "$f"; done
       - name: 单元测试
-        run: node --test test/
+        run: node --test
       - name: CLI 冒烟(离线命令)
         run: |
           node bin/larkaq --version

@@ -13,7 +13,13 @@
 - `lock.mjs` 陈旧锁接管、`lark.mjs` 翻页汇总(`collectPaged`)的单元测试。
 - 英文 `README.en.md` 与架构/状态机图(`ARCHITECTURE.md`)。
 
+### Changed
+- `larkaq install` 登录后**自动写入你本人的 `notify.user_open_id`**(从 `lark-cli auth status`
+  的 `openId` 取),不再需要手动查 open_id 才能让 bot 给自己发消息。
+
 ### Fixed
+- **Node 23+ 兼容**:新版 `node --test` 不再把 `test/` 当目录(会报 MODULE_NOT_FOUND)。
+  改用 `node --test`(无参自动发现),在 node 18/20/22/23/24 上一致工作;CI 矩阵补 node 24。
 - 移除 `doctor` 里过时的 `curl` 检查(项目已不依赖 curl)。
 
 ## [0.2.0] - 2026-06-23
