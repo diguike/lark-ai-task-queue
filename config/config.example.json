@@ -10,12 +10,14 @@
     "poll_interval_minutes": 60,
     "skip_completed": true,
     "require_confirmation_for_risky": true,
-    "_comment_execution": "每次跑一轮最多处理几条;require_confirmation 控制高风险任务(删除/外发/花钱)是否先停下来等人确认。"
+    "timezone": "",
+    "_comment_execution": "每次跑一轮最多处理几条;poll_interval_minutes 是 larkaq start 后台常驻的轮询间隔(launchd/cron/systemd 需各自同步);require_confirmation 控制高风险任务(删除/外发/花钱)是否先停下来等人确认;timezone 决定重复任务'每日'按哪个时区算(留空=进程本地时区,服务器跑在 UTC 时建议显式填如 'Asia/Shanghai')。"
   },
   "confirmation": {
     "needs_confirm_marker": "[AI-NEEDS-CONFIRM]",
     "ai_sentinel": "🤖",
-    "_comment_confirmation": "异步人工确认:遇到需人工拍板的点,AI 评论以 ai_sentinel + needs_confirm_marker 开头并保留任务在队列(不完成)。下一轮先读评论,若该确认评论之后出现不以 ai_sentinel 开头的新评论(=你的回复),视为已确认并据此继续推进。AI 写的每条评论都以 ai_sentinel 开头,用于和你的回复区分。"
+    "ai_success_mark": "✅",
+    "_comment_confirmation": "异步人工确认:遇到需人工拍板的点,AI 评论以 ai_sentinel + needs_confirm_marker 开头并保留任务在队列(不完成)。下一轮先读评论,若该确认评论之后出现不以 ai_sentinel 开头的新评论(=你的回复),视为已确认并据此继续推进。AI 写的每条评论都以 ai_sentinel 开头,用于和你的回复区分。ai_success_mark 标识'成功结果'评论:重复任务靠'今天是否有含此标记的 AI 评论'判定是否已干过,因此失败评论(🤖 ❌)不会让当天误判为已完成。"
   },
   "recurring": {
     "markers": [

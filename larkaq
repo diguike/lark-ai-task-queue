@@ -1,0 +1,4 @@
+#!/usr/bin/env node
+// 仓库根快捷入口:等价于 bin/larkaq。
+// 也可 `npm i -g .` 后在任意目录使用 `larkaq`。
+import './bin/larkaq';

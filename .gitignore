@@ -11,6 +11,11 @@ docs/*
 # ── 本地调度器残留 ──
 *.lock
 
+# ── Node ──
+node_modules/
+*.tmp.*
+npm-debug.log*
+
 # ── 系统 / 编辑器 ──
 .DS_Store
 Thumbs.db

@@ -1,6 +1,9 @@
 # systemd service 模板(Linux 服务器,opt-in)。
 # 放到 ~/.config/systemd/user/ (用户级,推荐) 或 /etc/systemd/system/ (系统级)。
-# 把 __ROOT__ 换成项目绝对路径。配合同目录的 .timer 使用。
+# 替换占位符:
+#   __ROOT__      项目绝对路径
+#   __NODE_BIN__  node/lark-cli/claude 所在目录(`dirname "$(command -v node)"`)
+# 配合同目录的 .timer 使用。
 [Unit]
 Description=Lark AI Task Queue — 跑一轮飞书 AI 任务队列
 After=network-online.target
@@ -10,4 +13,6 @@ Wants=network-online.target
 Type=oneshot
 WorkingDirectory=__ROOT__
 Environment=LARK_CLI_NO_PROXY=1
-ExecStart=/bin/bash __ROOT__/scripts/cron-run.sh
+# 关键:systemd 的 PATH 很干净,必须把 node/lark-cli/claude 目录放进来,否则找不到命令。
+Environment=PATH=__NODE_BIN__:/usr/local/bin:/usr/bin:/bin
+ExecStart=__NODE_BIN__/node __ROOT__/bin/larkaq run

@@ -12,8 +12,9 @@
   <key>Label</key>            <string>com.lark-ai-task-queue</string>
   <key>ProgramArguments</key>
   <array>
-    <string>/bin/bash</string>
-    <string>__ROOT__/scripts/cron-run.sh</string>
+    <string>__NODE_BIN__/node</string>
+    <string>__ROOT__/bin/larkaq</string>
+    <string>run</string>
   </array>
   <key>StartInterval</key>    <integer>3600</integer>
   <key>RunAtLoad</key>        <true/>

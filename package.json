@@ -1,0 +1,21 @@
+{
+  "name": "lark-ai-task-queue",
+  "version": "0.2.0",
+  "description": "把飞书任务清单当作寄给 AI 的异步待办队列:claude 定时拉取、执行、产出飞书文档、回写。",
+  "type": "module",
+  "bin": {
+    "larkaq": "bin/larkaq"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "doctor": "node bin/larkaq doctor",
+    "test": "node --test test/"
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/diguike/lark-ai-task-queue.git"
+  }
+}

@@ -1,4 +1,13 @@
-# cron 模板(macOS/Linux,opt-in)。`crontab -e` 后粘贴,把 __ROOT__ 换成项目绝对路径。
-# 注意:macOS 上机器睡眠时 cron 不触发;长期无人值守优先 launchd 或 daemon.sh。
-# 每小时整点跑一轮:
-0 * * * * cd __ROOT__ && /bin/bash scripts/cron-run.sh >> __ROOT__/logs/cron.log 2>&1
+# cron 模板(macOS/Linux,opt-in)。`crontab -e` 后粘贴。
+# 替换占位符:
+#   __ROOT__      项目绝对路径
+#   __NODE_BIN__  node/lark-cli/claude 所在目录(`dirname "$(command -v node)"`)
+# 注意:macOS 上机器睡眠时 cron 不触发;长期无人值守优先 launchd 或 larkaq start。
+
+# cron 环境很干净,显式声明 SHELL/HOME/PATH,否则找不到 node/lark-cli/claude:
+SHELL=/bin/bash
+HOME=__HOME__
+PATH=__NODE_BIN__:/usr/local/bin:/usr/bin:/bin
+
+# 每小时整点跑一轮(改成与 config.poll_interval_minutes 一致):
+0 * * * * cd __ROOT__ && node bin/larkaq run >> __ROOT__/logs/cron.log 2>&1

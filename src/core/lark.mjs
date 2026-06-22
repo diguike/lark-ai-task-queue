@@ -1,0 +1,138 @@
+// core/lark.mjs — lark-cli 适配层(唯一 spawn lark-cli 的地方)。
+//
+// 所有调用都用 user 身份 + --json。把"调命令 + 校验返回码 + 解析 JSON"收敛到
+// 一个 runLark(),其余高层操作只组织参数、提取字段,不再各自处理子进程细节。
+
+import { spawnSync } from 'node:child_process';
+import { getConfig } from './config.mjs';
+import { dig } from '../util.mjs';
+
+const ENV = { ...process.env, LARK_CLI_NO_PROXY: '1' };
+
+/**
+ * 调用 lark-cli 并返回解析后的 JSON。
+ * @param {string[]} args lark-cli 子命令参数(不含 --as/--json,会自动补)
+ * @param {{ identity?: 'user'|'bot' }} [opts]
+ * @returns {any} 解析后的响应对象
+ * @throws 子进程失败、输出非 JSON、或飞书返回 code!==0 时抛错
+ */
+export function runLark(args, { identity = 'user' } = {}) {
+  const full = [...args, '--as', identity, '--json'];
+  const r = spawnSync('lark-cli', full, { encoding: 'utf8', env: ENV, maxBuffer: 32 * 1024 * 1024 });
+  if (r.error) throw new Error(`lark-cli 无法执行: ${r.error.message}(是否已安装?)`);
+  if (r.status !== 0) {
+    const tail = (r.stderr || r.stdout || '').trim().split('\n').slice(-3).join(' ');
+    throw new Error(`lark-cli ${args[0] ?? ''} 退出码 ${r.status}: ${tail}`);
+  }
+  let data;
+  try {
+    data = JSON.parse(r.stdout);
+  } catch {
+    throw new Error(`lark-cli ${args[0] ?? ''} 输出非 JSON: ${(r.stdout || '').slice(0, 200)}`);
+  }
+  if (typeof data?.code === 'number' && data.code !== 0) {
+    throw new Error(`飞书 API 错误 code=${data.code}: ${data.msg ?? ''}`);
+  }
+  return data;
+}
+
+/** 原生 OpenAPI GET。 */
+export function apiGet(path, params) {
+  return runLark(['api', 'GET', path, '--params', JSON.stringify(params)]);
+}
+
+/**
+ * 翻页拉取:反复调用 buildArgs(pageToken) 直到 data.has_more 为 false,
+ * 汇总所有 data.items。封掉"只取第一页/前 100 条"的漏数风险。
+ * @param {(pageToken: string|undefined) => string[]} buildArgs
+ */
+function runLarkPaged(buildArgs) {
+  const items = [];
+  let pageToken;
+  let guard = 0;
+  do {
+    const data = runLark(buildArgs(pageToken));
+    const page = dig(data, 'data.items') || [];
+    items.push(...page);
+    pageToken = dig(data, 'data.has_more') ? dig(data, 'data.page_token') : undefined;
+  } while (pageToken && ++guard < 100); // guard 防御异常的无限翻页
+  return items;
+}
+
+// ── 高层操作 ────────────────────────────────────────────────────────────────
+
+/** 列出全部任务清单(翻页),返回原始 items(含 guid/name 等)。 */
+export function listTasklists() {
+  return runLarkPaged((pageToken) => {
+    const params = { page_size: 100, ...(pageToken ? { page_token: pageToken } : {}) };
+    return ['task', 'tasklists', 'list', '--params', JSON.stringify(params)];
+  });
+}
+
+/** 列出某清单下未完成任务的原始 items(翻页)。 */
+export function listPendingTasks(tasklistGuid) {
+  return runLarkPaged((pageToken) => {
+    const params = {
+      tasklist_guid: tasklistGuid,
+      completed: false,
+      page_size: 100,
+      ...(pageToken ? { page_token: pageToken } : {}),
+    };
+    return ['task', 'tasklists', 'tasks', '--params', JSON.stringify(params)];
+  });
+}
+
+/** 取单个任务详情(原始 task 对象)。 */
+export function getTask(taskGuid) {
+  const data = runLark(['task', 'tasks', 'get', '--params', JSON.stringify({ task_guid: taskGuid })]);
+  return dig(data, 'data.task') || {};
+}
+
+/** 给任务加评论。 */
+export function addComment(taskGuid, content) {
+  return runLark(['task', '+comment', '--task-id', taskGuid, '--content', content]);
+}
+
+/** 标记任务完成。 */
+export function completeTask(taskGuid) {
+  return runLark(['task', '+complete', '--task-id', taskGuid]);
+}
+
+/** 列出任务评论的原始 items(翻页;确认状态机需要全部评论)。 */
+export function listComments(taskGuid) {
+  return runLarkPaged((pageToken) => {
+    const params = {
+      resource_type: 'task',
+      resource_id: taskGuid,
+      page_size: 100,
+      ...(pageToken ? { page_token: pageToken } : {}),
+    };
+    return ['api', 'GET', '/open-apis/task/v2/comments', '--params', JSON.stringify(params)];
+  });
+}
+
+/** 建飞书文档,返回分享 url。 */
+export function createDoc(xmlContent) {
+  const folder = getConfig('output.doc_folder_token', '');
+  const args = ['docs', '+create', '--api-version', 'v2', '--content', xmlContent];
+  if (folder) args.push('--parent-token', folder);
+  return dig(runLark(args), 'data.document.url');
+}
+
+/** 机器人私聊发 markdown 消息。 */
+export function imSendMarkdown(userOpenId, markdown) {
+  return runLark(['im', '+messages-send', '--user-id', userOpenId, '--markdown', markdown], {
+    identity: 'bot',
+  });
+}
+
+/** 查询 lark-cli 认证状态(原始对象)。 */
+export function authStatus() {
+  const r = spawnSync('lark-cli', ['auth', 'status'], { encoding: 'utf8', env: ENV });
+  if (r.status !== 0 || !r.stdout) return null;
+  try {
+    return JSON.parse(r.stdout);
+  } catch {
+    return null;
+  }
+}
