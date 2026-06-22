@@ -146,7 +146,15 @@ Plus a set of atomic ops used by the AI executor (`prompts/run-queue.md`): `queu
 | | `mark_task_done_on_success` | Mark complete on success (except recurring) |
 | `notify` | `channel` | `off` / `bot` (set `user_open_id`) / `webhook` (set `webhook_url`) |
 
-Use `larkaq config set notify.channel webhook` — no hand-editing JSON.
+Two ways to change config:
+```bash
+larkaq config set notify.channel webhook        # precise, field by field
+larkaq config nl "process up to 5 tasks per round, set timezone to Shanghai, push via webhook"
+```
+**Natural-language config (`config nl`)**: describe your intent; it hands the config schema to Claude,
+which translates it into structured changes that are **validated field-by-field before writing** (only
+user-facing fields are settable; illegal values / out-of-scope paths are rejected). It prints
+before→after plus revert commands. Add `--dry-run` to preview first.
 
 ## 🔒 Security
 

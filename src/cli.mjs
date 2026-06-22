@@ -21,6 +21,7 @@ ${color.bold('上手:')}
   config list          打印当前配置(敏感值脱敏)
   config get <路径>     读单个配置项,如 config get notify.channel
   config set <路径> <值> 设置配置项,如 config set execution.max_tasks_per_run 5
+  config nl "<意图>"    自然语言改配置(交给 Claude 翻成改动并应用),加 --dry-run 可预览
 
 ${color.bold('运行:')}
   run [--dry-run]      跑一轮(锁 + 预筛 + 有活才唤起 claude;--dry-run 只预筛不执行)

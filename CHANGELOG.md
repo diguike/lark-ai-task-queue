@@ -7,7 +7,10 @@
 ## [Unreleased]
 
 ### Added
-- GitHub Actions CI(矩阵 node 18/20/22 跑 `node --test` + CLI 冒烟)。
+- **自然语言配置 `larkaq config nl "<意图>"`**:把意图交给 Claude,按配置 Schema 翻成结构化改动,
+  逐项过 `validateConfig` + 白名单闸门再写入(非法值/越权 path 一律拒绝),打印 before→after
+  与还原命令;`--dry-run` 可预览。纯逻辑(`extractJsonObject` / `vetChanges`)有单测。
+- GitHub Actions CI(矩阵 node 18/20/22/24 跑 `node --test` + CLI 冒烟)。
 - `larkaq --version` / `-v`。
 - `SECURITY.md`、issue/PR 模板、`CHANGELOG.md`、`.nvmrc`。
 - `lock.mjs` 陈旧锁接管、`lark.mjs` 翻页汇总(`collectPaged`)的单元测试。

@@ -125,7 +125,12 @@ larkaq start|stop|status|logs   后台常驻
 | | `mark_task_done_on_success` | 成功后是否标记完成(重复任务除外) |
 | `notify` | `channel` | `off` / `bot`(填 `user_open_id`) / `webhook`(填 `webhook_url`) |
 
-`larkaq config set notify.channel webhook` 这样改即可,无需手编 JSON。
+两种改法,任选:
+```bash
+larkaq config set notify.channel webhook        # 逐字段精确设置
+larkaq config nl "每轮最多处理 5 条,时区设成上海,推送发到飞书群用 webhook"   # 自然语言,交给 Claude
+```
+**自然语言配置(`config nl`)**:把意图说给命令,它带上配置 Schema 调用 Claude,翻成结构化改动后**逐项过校验闸门再写入**(只允许改用户可见字段,非法值/越权 path 一律拒绝),并打印 before→after 与还原命令。不确定改了什么?加 `--dry-run` 先预览。
 
 ## 🧠 进阶能力
 
