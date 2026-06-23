@@ -4,6 +4,7 @@ import { existsSync } from 'node:fs';
 import { CONFIG_FILE, getConfig } from '../core/config.mjs';
 import { authStatus } from '../core/lark.mjs';
 import { resolveTasklists } from '../core/queue.mjs';
+import { SUPPORTED_ENGINES } from '../core/engine.mjs';
 import { dig, color, which } from '../util.mjs';
 
 export function cmdDoctor() {
@@ -25,9 +26,13 @@ export function cmdDoctor() {
   const has = (cmd) => which(cmd) !== null;
 
   console.log('── 1. 依赖 ──');
-  // 核心依赖只有 lark-cli + claude;node 随 lark-cli 必然存在。
-  for (const c of ['lark-cli', 'claude']) {
-    has(c) ? pass(`${c} 已安装`) : fail(`${c} 缺失`);
+  // 核心依赖:lark-cli + 配置的执行引擎(claude 或 codex);node 随 lark-cli 必然存在。
+  const engine = getConfig('execution.agent', 'claude');
+  has('lark-cli') ? pass('lark-cli 已安装') : fail('lark-cli 缺失');
+  if (!SUPPORTED_ENGINES.includes(engine)) {
+    fail(`execution.agent=${engine} 非法(只能是 ${SUPPORTED_ENGINES.join('/')})`);
+  } else {
+    has(engine) ? pass(`${engine} 已安装(execution.agent)`) : fail(`${engine} 缺失(execution.agent=${engine})`);
   }
   pass(`node ${process.version}`);
 
@@ -48,6 +53,7 @@ export function cmdDoctor() {
   console.log('── 3. 配置 ──');
   if (existsSync(CONFIG_FILE)) {
     pass('config/config.json 存在');
+    pass(`执行引擎 = ${engine}${engine === 'claude' ? '(默认)' : ''}`);
     const prefix = getConfig('queue.tasklist_name_prefix', '');
     prefix ? pass(`队列前缀 = "${prefix}"`) : note('未设 queue.tasklist_name_prefix');
     const ch = getConfig('notify.channel', 'bot');

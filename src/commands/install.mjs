@@ -27,6 +27,7 @@ export function cmdInstall() {
   } else {
     console.log(color.green('   ✓ lark-cli / claude 均已安装'));
   }
+  console.log(color.dim('     (默认执行器为 claude;想用 codex 则装好 OpenAI Codex CLI,再 `larkaq config set execution.agent codex`)'));
 
   // 2. 配置文件
   console.log('2) 配置文件');

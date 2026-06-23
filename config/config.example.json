@@ -6,12 +6,13 @@
     "_comment_queue": "约定优于配置:清单名以 tasklist_name_prefix 开头的(大小写不敏感),都会被当作 AI 待办队列自动发现。无需手填 guid。tasklist_guids 是可选的强制白名单(非空时只认这些 guid,忽略前缀)。运行时把解析到的 name->guid 缓存到 state_file。"
   },
   "execution": {
+    "agent": "claude",
     "max_tasks_per_run": 3,
     "poll_interval_minutes": 30,
     "skip_completed": true,
     "require_confirmation_for_risky": true,
     "timezone": "",
-    "_comment_execution": "每次跑一轮最多处理几条;poll_interval_minutes 是 larkaq start 后台常驻的轮询间隔(launchd/cron/systemd 需各自同步);require_confirmation 控制高风险任务(删除/外发/花钱)是否先停下来等人确认;timezone 决定重复任务'每日'按哪个时区算(留空=进程本地时区,服务器跑在 UTC 时建议显式填如 'Asia/Shanghai')。"
+    "_comment_execution": "agent 选无人值守执行队列的编码代理:'claude'(默认,Claude Code)或 'codex'(OpenAI Codex CLI);两者都以非交互+跳过确认方式运行,需自行装好对应 CLI 并登录,安全靠提示词里的高风险闸门。每次跑一轮最多处理几条;poll_interval_minutes 是 larkaq start 后台常驻的轮询间隔(launchd/cron/systemd 需各自同步);require_confirmation 控制高风险任务(删除/外发/花钱)是否先停下来等人确认;timezone 决定重复任务'每日'按哪个时区算(留空=进程本地时区,服务器跑在 UTC 时建议显式填如 'Asia/Shanghai')。"
   },
   "confirmation": {
     "needs_confirm_marker": "[AI-NEEDS-CONFIRM]",

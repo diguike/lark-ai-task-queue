@@ -1,6 +1,5 @@
 // commands/run.mjs — 跑一轮(headless),以及后台常驻的循环体。
 
-import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ROOT, getConfig } from '../core/config.mjs';
@@ -8,9 +7,8 @@ import { acquireLock } from '../core/lock.mjs';
 import { countActionable, pullQueue } from '../core/queue.mjs';
 import { logLine } from '../core/logger.mjs';
 import { notify } from '../core/notify.mjs';
+import { runAgent, resolveEngine } from '../core/engine.mjs';
 import { nowStamp, color } from '../util.mjs';
-
-const ENV = { ...process.env, LARK_CLI_NO_PROXY: '1' };
 
 function buildPrompt() {
   const base = readFileSync(resolve(ROOT, 'prompts/run-queue.md'), 'utf8');
@@ -55,23 +53,21 @@ export async function runRound({ dryRun = false } = {}) {
       return 0;
     }
 
-    console.log(`可处理任务数: ${n},唤起 claude…`);
-    // --dangerously-skip-permissions:headless 无人值守必须(没人点确认)。
+    // 唤起配置的 AI 执行器(默认 Claude Code,可配 Codex)。无人值守跳过权限确认,
     // 安全靠 run-queue.md 的闸门:高风险任务只评论 [AI-NEEDS-CONFIRM] 不执行。
-    const r = spawnSync(
-      'claude',
-      ['-p', buildPrompt(), '--add-dir', ROOT, '--dangerously-skip-permissions'],
-      { stdio: 'inherit', env: ENV },
-    );
-    if (r.error) throw new Error(`claude 无法执行: ${r.error.message}(是否已安装?)`);
+    // 先解析引擎名一次(配置非法则在此抛错,不会进到 spawn),打印的与实际跑的同源。
+    const engine = resolveEngine();
+    console.log(`可处理任务数: ${n},唤起 ${engine}…`);
+    const { cmd, result: r } = runAgent(buildPrompt(), ROOT, engine);
+    if (r.error) throw new Error(`${cmd} 无法执行: ${r.error.message}(是否已安装?)`);
     if (r.signal) {
-      logLine(`claude 被信号 ${r.signal} 终止`);
-      console.error(color.red(`claude 被信号 ${r.signal} 终止`));
+      logLine(`${engine} 被信号 ${r.signal} 终止`);
+      console.error(color.red(`${engine} 被信号 ${r.signal} 终止`));
       return 1;
     }
     const code = r.status ?? 1; // 正常退出 status 是数字;异常时不要当成 0
-    if (code !== 0) logLine(`claude 退出码 ${code}`);
-    console.log(color.dim(`[${nowStamp()}] run 结束(claude exit=${code})`));
+    if (code !== 0) logLine(`${engine} 退出码 ${code}`);
+    console.log(color.dim(`[${nowStamp()}] run 结束(${engine} exit=${code})`));
     return code;
   } finally {
     lock.release();

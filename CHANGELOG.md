@@ -6,6 +6,15 @@
 
 ## [Unreleased]
 
+### Added
+- **可插拔 AI 执行器(`execution.agent`)**:无人值守执行队列的编码代理可配置,
+  默认 `claude`(Claude Code),可选 `codex`(OpenAI Codex CLI)。新增适配层
+  `core/engine.mjs`,把"非交互 + 跳过确认 + 能跑 shell/联网"的契约收敛成纯函数
+  `buildAgentCommand`(claude → `-p … --add-dir … --dangerously-skip-permissions`;
+  codex → `exec --dangerously-bypass-approvals-and-sandbox -C … <prompt>`)。
+  `run`、`doctor` 与 `config nl` 的可设字段均接入;`run-queue.md` 提示词两引擎通用。
+  纯逻辑有单测。`config nl` 的一次性配置推理仍固定用 claude(其 stdout 为可解析 JSON)。
+
 ## [0.3.0] - 2026-06-24
 
 ### Added

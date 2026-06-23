@@ -11,6 +11,7 @@ import { validateConfig } from './config.mjs';
 export const CONFIG_SCHEMA = [
   { path: 'queue.tasklist_name_prefix', type: 'string', desc: '队列清单名前缀,清单名以此开头即入队' },
   { path: 'queue.tasklist_guids', type: 'string[]', desc: '强制白名单 guid;非空则忽略前缀只认这些' },
+  { path: 'execution.agent', type: 'enum: claude|codex', desc: '无人值守执行队列用哪个编码代理(默认 claude,可选 codex)' },
   { path: 'execution.max_tasks_per_run', type: 'integer>0', desc: '每轮最多处理几条任务' },
   { path: 'execution.poll_interval_minutes', type: 'number>0', desc: 'larkaq start 后台轮询间隔(分钟)' },
   { path: 'execution.require_confirmation_for_risky', type: 'boolean', desc: '高风险任务(删除/外发/花钱)是否挂起等确认' },

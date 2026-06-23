@@ -24,7 +24,7 @@ ${color.bold('上手:')}
   config nl "<意图>"    自然语言改配置(交给 Claude 翻成改动并应用),加 --dry-run 可预览
 
 ${color.bold('运行:')}
-  run [--dry-run]      跑一轮(锁 + 预筛 + 有活才唤起 claude;--dry-run 只预筛不执行)
+  run [--dry-run]      跑一轮(锁 + 预筛 + 有活才唤起执行器;--dry-run 只预筛不执行)
   start                后台常驻(用户态,不进系统定时任务)
   stop                 停止后台常驻
   status               查看后台状态

@@ -15,7 +15,7 @@
 ```mermaid
 flowchart LR
     A["📱 飞书任务清单<br/>(名字以 AI 开头)"] -->|定时触发| B["larkaq run<br/>省 token 预筛"]
-    B -->|有活才唤起| C["claude -p<br/>执行任务"]
+    B -->|有活才唤起| C["AI 执行器<br/>claude(默认)/codex"]
     C --> D["📄 飞书文档"]
     C -->|回写评论 + 标记完成| A
     C -->|每轮小结| E["🔔 飞书推送"]
@@ -44,7 +44,7 @@ flowchart LR
 
 - **零自研 todo**:数据源、录入、进度都用飞书任务原生界面,手机/网页都能记。
 - **约定优于配置**:清单名以 `AI` 前缀开头即被自动当作队列,无需手填 guid;`name→guid` 自动缓存。
-- **依赖极简**:核心只要 `lark-cli` + `claude`。工具本身是**纯 Node、零三方 npm 依赖**(`node` 随 `lark-cli` 必然存在)。
+- **依赖极简**:核心只要 `lark-cli` + 一个执行器(`claude` 默认,或 `codex`)。工具本身是**纯 Node、零三方 npm 依赖**(`node` 随 `lark-cli` 必然存在)。
 - **跨平台**:macOS 与 Linux 服务器一致运行(全 Node 实现,无 bash 可移植性坑)。
 - **隔离安全**:只动 `AI` 前缀清单,绝不碰你其它私人任务。
 - **异步人工确认**:任务卡在需拍板处时评论提问并挂起,你**有空回复**后下一轮自动续作。
@@ -59,9 +59,11 @@ flowchart LR
 | 依赖 | 用途 | 安装 |
 |---|---|---|
 | `lark-cli` | 调飞书任务 / 文档 / 消息 API | 见 [lark-cli 文档](https://github.com/larksuite)。它是 node 脚本,**安装即带来 `node`** |
-| `claude`(Claude Code) | 真正执行任务的 AI 执行器 | `npm i -g @anthropic-ai/claude-code` |
+| `claude`(Claude Code) | 默认的 AI 执行器 | `npm i -g @anthropic-ai/claude-code` |
 
 > 就这两个。本工具用 Node 自带能力解析 JSON、发 HTTP,**不需要 jq / curl**。`node ≥ 18`(随 `lark-cli` 已满足)。
+>
+> 想换执行器?把 `execution.agent` 设成 `codex`(需自行装好 [OpenAI Codex CLI](https://github.com/openai/codex) 并登录)即可,默认仍是 `claude`。
 
 ### 1. 安装引导(一次性)
 ```bash
@@ -86,7 +88,7 @@ lark-cli auth login --scope "task:task:write task:tasklist:read task:comment:wri
 往清单里加一条任务(如「调研 X 写一页总结」),然后:
 ```bash
 larkaq doctor          # 体检:依赖 / 认证 / 配置 / 清单
-larkaq run --dry-run   # 看本轮会处理什么(只预筛,不唤起 claude)
+larkaq run --dry-run   # 看本轮会处理什么(只预筛,不唤起执行器)
 larkaq run             # 真跑一轮(拉取→执行→建文档→回写→完成→日志→推送)
 ```
 或在 Claude Code 里发:`按 prompts/run-queue.md 跑一轮飞书 AI 任务队列`。
@@ -115,7 +117,8 @@ larkaq start|stop|status|logs   后台常驻
 |---|---|---|
 | `queue` | `tasklist_name_prefix` | 清单名前缀(默认 `AI`),命中即入队 |
 | | `tasklist_guids` | 可选白名单;非空时只认这些 guid,忽略前缀 |
-| `execution` | `max_tasks_per_run` | 每轮最多处理几条 |
+| `execution` | `agent` | 无人值守执行队列的编码代理:`claude`(默认,Claude Code)或 `codex`(OpenAI Codex CLI) |
+| | `max_tasks_per_run` | 每轮最多处理几条 |
 | | `poll_interval_minutes` | `larkaq start` 轮询间隔(launchd/cron 需各自同步) |
 | | `timezone` | 重复任务"每日"按哪个时区算(留空=本地;UTC 服务器建议填 `Asia/Shanghai`) |
 | | `require_confirmation_for_risky` | 高风险任务(删除/外发/花钱)是否挂起等确认 |
@@ -141,6 +144,7 @@ larkaq config nl "每轮最多处理 5 条,时区设成上海,推送发到飞书
 | **重复/每日任务** | 标题/描述含 `[每日]`/`[daily]` 等(或飞书重复规则)→ 做完只追评论、不完成;每自然日(按 `timezone`)最多一次。 |
 | **小时/分钟级重复** | 标题/描述带 `[每30分钟]`/`[每1小时]`/`[每2小时]`/`[每2天]`(也认 `[每30m]`/`[每2h]`)→ 按"距上次成功 ≥ 间隔"滚动判定,补上飞书原生重复规则只到天/周的空缺。可叠加活跃时段 `[09:00-22:00]`(支持跨午夜 `[22:00-02:00]`),窗口外不跑。**精度受心跳限制**:要做半小时级,需把 `poll_interval_minutes` 与调度器触发间隔压到 5–10 分钟。 |
 | **cron / 每日定点** | 程序员可用标准 5 字段 cron 精确控制时点:`[cron: 0 9 * * 1-5]`(工作日 9 点)、`[cron: */30 9-22 * * *]`(9–22 点每半小时);`[每日 09:00]`/`[每天 18:00]` 是其语法糖。语义为"上次成功后是否又跨过一个 cron 匹配点",同样受轮询心跳粒度限制。优先级 **cron > 间隔 > 自然日标记**。 |
+| **可插拔执行器** | `execution.agent` 选 `claude`(默认)或 `codex`;适配层(`core/engine.mjs`)统一非交互、跳过确认地唤起,提示词与原子操作两边通用。 |
 | **每轮推送** | 跑完发飞书汇总;`channel` 可选 `off`/`bot`/`webhook`(webhook 走 Node `fetch`)。 |
 | **防重叠** | `run` 单实例锁:上一轮没跑完,下一轮自动跳过,不重复处理。 |
 | **省 token 预筛** | 纯 Node 先判断有无真要干的活,无活不唤起 Claude。 |
@@ -192,8 +196,8 @@ larkaq run --dry-run   # 端到端干跑(只预筛)
 
 ## ❓ FAQ
 
-**Q: 真的只依赖 lark-cli + claude?jq/curl 都不要了?**
-是。`lark-cli` 本身是 Node 脚本,装了它 `node` 就在;本工具用 Node 解析 JSON、用内置 `fetch` 发 webhook,**不再需要 jq / curl**。
+**Q: 真的只依赖 lark-cli + 一个执行器?jq/curl 都不要了?**
+是。`lark-cli` 本身是 Node 脚本,装了它 `node` 就在;执行器默认 `claude`、可换 `codex`;本工具用 Node 解析 JSON、用内置 `fetch` 发 webhook,**不再需要 jq / curl**。
 
 **Q: 开源给别人要授权两套账号、还得建机器人吗?**
 不用。整个 lark-cli 只配**一个飞书应用**,它同时给出 `user`(需一次 `auth login`)和 `bot`(自动)两种令牌。核心功能只用 user;推送想零配置就用 `webhook` 渠道。
