@@ -15,8 +15,8 @@
 
 - 全量 ES Module(`.mjs`),Node ≥ 18。
 - **纯逻辑与 I/O 分离**:状态机、过滤、计数等放 `src/core/` 的纯函数(便于单测);spawn `lark-cli` 只在 `src/core/lark.mjs`。
-- 新增飞书调用统一走 `src/core/lark.mjs`;新 API 先 `lark-cli schema <svc>.<res>.<method>` 看参数,原生透传用 `lark-cli api`(见 `NOTES.md`)。
-- 改了行为先更新 `prompts/run-queue.md`(执行口径)与 `NOTES.md`(命令摸底)。
+- 新增飞书调用统一走 `src/core/lark.mjs`;新 API 先 `lark-cli schema <svc>.<res>.<method>` 看参数结构,原生未封装的用 `lark-cli api GET/POST` 透传。
+- 改了执行口径(AI 执行器的行为)先同步 `prompts/run-queue.md`。
 - 给纯逻辑补单测;改了行为先让 `node --test` 全绿。
 
 ## 提 PR

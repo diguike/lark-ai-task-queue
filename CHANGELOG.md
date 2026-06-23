@@ -22,6 +22,13 @@
 - `larkaq install` 登录后**自动写入你本人的 `notify.user_open_id`**(从 `lark-cli auth status`
   的 `openId` 取),不再需要手动查 open_id 才能让 bot 给自己发消息。
 
+### Removed
+- 删除构建期遗留的 `NOTES.md`(lark-cli 命令摸底,已被 `src/core/lark.mjs` 封装取代)
+  与 `prompts/IMPLEMENTATION.md`(把脚手架实现出来的一次性启动提示词,项目已完成)。
+
+### Changed
+- README 精简:去掉与顶部流程图重复的 ASCII 工作流,新增「更多文档」导航。
+
 ### Fixed
 - **Node 23+ 兼容**:新版 `node --test` 不再把 `test/` 当目录(会报 MODULE_NOT_FOUND)。
   改用 `node --test`(无参自动发现),在 node 18/20/22/23/24 上一致工作;CI 矩阵补 node 24。

@@ -143,24 +143,6 @@ larkaq config nl "每轮最多处理 5 条,时区设成上海,推送发到飞书
 | **防重叠** | `run` 单实例锁:上一轮没跑完,下一轮自动跳过,不重复处理。 |
 | **省 token 预筛** | 纯 Node 先判断有无真要干的活,无活不唤起 Claude。 |
 
-## 🔁 工作流
-
-```
-飞书 "AI…" 清单加任务
-   │   定时触发(larkaq start / launchd / cron / loop)
-   ▼
-larkaq run:预筛(前缀发现 + 缓存,无活不唤起 claude)
-   │   有活才唤起 claude -p,逐条:查确认状态 → 判型(普通/重复/高风险)
-   ▼
-执行(调研/写作/分析) → larkaq doc 建飞书文档
-   │
-   ▼
-回写:文档链接评论回任务 →(普通)标记完成 /(重复)只追评论
-   │
-   ▼
-写 logs/YYYY-MM-DD.log → larkaq notify 发飞书小结
-```
-
 ## 📁 目录结构
 
 ```
@@ -180,9 +162,7 @@ lark-ai-task-queue/
 │   │   └── logger.mjs          # 按天日志
 │   └── commands/               # 各子命令实现
 ├── test/                       # node:test 单测(纯逻辑全覆盖)
-├── prompts/
-│   ├── run-queue.md            # 运行时核心提示词(每轮执行逻辑)
-│   └── IMPLEMENTATION.md       # 一次性启动提示词
+├── prompts/run-queue.md        # 运行时核心提示词(每轮执行逻辑)
 ├── scripts/                    # 旧 bash 入口的兼容转发(→ node bin/larkaq)
 ├── config/
 │   ├── config.example.json     # 配置模板(提交)
@@ -232,11 +212,22 @@ larkaq run --dry-run   # 端到端干跑(只预筛)
 - [ ] 失败重试与加急告警
 - [ ] 多队列 / 多用户协作
 - [x] 全量 Node 重构 + 单测 + 极简依赖
-- [x] 异步人工确认往返
-- [x] 重复(每日)任务 + 时区
+- [x] 自然语言配置(`config nl`)
+- [x] 尊重飞书"开始时间"(定时执行)
+- [x] 异步人工确认往返 / 重复(每日)任务 + 时区
 - [x] 每轮飞书推送(off/bot/webhook)
 - [x] 无人值守部署 + 防重叠锁 + 省 token 预筛
 
+## 📚 更多文档
+
+| 文档 | 内容 |
+|---|---|
+| [DEPLOY.md](DEPLOY.md) | 5 种无人值守部署方式(daemon / launchd / cron / systemd / Docker) |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | 模块依赖、数据流、确认状态机图 |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | 贡献指南与设计原则 |
+| [SECURITY.md](SECURITY.md) | 安全策略与设计边界 |
+| [CHANGELOG.md](CHANGELOG.md) | 版本变更记录 |
+
 ## 📄 License
 
-[MIT](LICENSE)
+[MIT](LICENSE) © diguike
