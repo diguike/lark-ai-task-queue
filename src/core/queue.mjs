@@ -2,7 +2,14 @@
 
 import { writeAtomic, nowStamp, localDate } from '../util.mjs';
 import { getConfig, statePath, timezone, sentinel, confirmMarker, successMark } from './config.mjs';
-import { listTasklists, listPendingTasks, getTask, listComments } from './lark.mjs';
+import {
+  listTasklists,
+  searchTasklists,
+  getTasklist,
+  listPendingTasks,
+  getTask,
+  listComments,
+} from './lark.mjs';
 import { normalizeComments, isActionable } from './confirm.mjs';
 
 /**
@@ -17,6 +24,19 @@ export function filterTasklists(items, prefix, whitelist) {
   }
   const p = (prefix || '').toLowerCase();
   return lists.filter((x) => (x.name || '').toLowerCase().startsWith(p));
+}
+
+/** 按 guid 去重(保留首次出现,纯函数)。用于合并多来源清单。 */
+export function dedupByGuid(items) {
+  const seen = new Set();
+  const out = [];
+  for (const x of items || []) {
+    if (x && x.guid && !seen.has(x.guid)) {
+      seen.add(x.guid);
+      out.push(x);
+    }
+  }
+  return out;
 }
 
 /** 把任务详情投影成队列条目(纯函数)。 */
@@ -34,11 +54,29 @@ export function projectTask(task, tasklistName, tasklistGuid) {
   };
 }
 
-/** 发现 AI 队列清单,写缓存 state.json(失败不致命),返回 [{guid,name}]。 */
+/**
+ * 发现 AI 队列清单,写缓存 state.json(失败不致命),返回 [{guid,name}]。
+ * 前缀模式取 `list ∪ search` 并集去重做双保险:list 接口有最终一致性窗口、
+ * 偶发只回热子集会漏清单,search 按前缀匹配兜底(反之亦然)。
+ * 白名单模式按 guid 逐个反查清单详情,单条失效(已删/无权限)只跳过不影响其余。
+ * 前缀为空时退回 list 全量(配合 startsWith('') 匹配全部,保持旧行为)。
+ */
 export function resolveTasklists() {
   const prefix = getConfig('queue.tasklist_name_prefix', 'AI');
   const whitelist = getConfig('queue.tasklist_guids', []);
-  const matched = filterTasklists(listTasklists(), prefix, whitelist);
+  const useWhitelist = Array.isArray(whitelist) && whitelist.length > 0;
+  const found = useWhitelist
+    ? whitelist.flatMap((guid) => {
+        try {
+          return [getTasklist(guid)];
+        } catch {
+          return []; // guid 失效/无权限:跳过,不让一条坏 guid 拖垮整轮
+        }
+      })
+    : prefix
+      ? dedupByGuid([...listTasklists(), ...searchTasklists(prefix)])
+      : listTasklists();
+  const matched = filterTasklists(found, prefix, whitelist);
   try {
     writeAtomic(
       statePath(),

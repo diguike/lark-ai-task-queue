@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { filterTasklists, projectTask, selectActionable } from '../src/core/queue.mjs';
+import { filterTasklists, dedupByGuid, projectTask, selectActionable } from '../src/core/queue.mjs';
 import { normalizeComments } from '../src/core/confirm.mjs';
 
 const lists = [
@@ -31,6 +31,21 @@ test('filterTasklists: 白名单非空时忽略前缀', () => {
 test('filterTasklists: 空输入安全', () => {
   assert.deepEqual(filterTasklists(undefined, 'AI', []), []);
   assert.deepEqual(filterTasklists([], 'AI', []), []);
+});
+
+test('dedupByGuid: 按 guid 去重保留首现,跳过空/缺 guid 项', () => {
+  const got = dedupByGuid([
+    { guid: 'a', name: '1' },
+    { guid: 'a', name: '重复' },
+    { guid: 'b', name: '2' },
+    null,
+    { name: '无 guid' },
+  ]);
+  assert.deepEqual(got, [
+    { guid: 'a', name: '1' },
+    { guid: 'b', name: '2' },
+  ]);
+  assert.deepEqual(dedupByGuid(undefined), []);
 });
 
 test('projectTask: 投影队列条目,补默认值并捕获开始时间', () => {
