@@ -74,6 +74,34 @@ export function listTasklists() {
   });
 }
 
+/**
+ * 按关键词搜索任务清单(翻页),返回原始 items(含 guid/name)。
+ * 与 `tasklists list` 互为双保险:实测 list 接口存在最终一致性窗口,
+ * 偶发只回一个热子集(漏掉部分清单);搜索结果集更小、更贴合"找前缀清单"
+ * 的意图,truncate 概率低。两者取并集去重,降低瞬时降级导致漏清单的概率。
+ */
+export function searchTasklists(query) {
+  return runLarkPaged((pageToken) => [
+    'task',
+    '+tasklist-search',
+    '--query',
+    query,
+    ...(pageToken ? ['--page-token', pageToken] : []),
+  ]);
+}
+
+/** 取单个清单详情({guid,name,...})。用于白名单按 guid 反查清单名。 */
+export function getTasklist(tasklistGuid) {
+  const data = runLark([
+    'task',
+    'tasklists',
+    'get',
+    '--params',
+    JSON.stringify({ tasklist_guid: tasklistGuid }),
+  ]);
+  return dig(data, 'data.tasklist') || {};
+}
+
 /** 列出某清单下未完成任务的原始 items(翻页)。 */
 export function listPendingTasks(tasklistGuid) {
   return runLarkPaged((pageToken) => {
