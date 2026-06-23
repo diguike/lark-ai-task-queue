@@ -34,7 +34,7 @@ ${color.bold('给 AI 执行器的原子操作(一般由 prompts/run-queue.md 调
   queue pull                       拉未完成任务 JSON 数组
   confirm-state <task_guid>        异步确认状态机 → JSON
   is-recurring <summary> <desc> [rr]   是否重复任务(退出码 0=是)
-  recurring-done <task_guid>       重复任务今天是否已干(退出码 0=已干)
+  recurring-done <task_guid> [summary] [desc]   重复任务本周期内是否已干(退出码 0=已干;传文本才能识别间隔/cron)
   comment <task_guid> <内容>        给任务加评论
   complete <task_guid>             标记任务完成
   doc <xml>                        建飞书文档,输出分享 url

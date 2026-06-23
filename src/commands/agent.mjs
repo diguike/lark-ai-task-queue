@@ -29,9 +29,10 @@ export function cmdIsRecurring(args) {
   return isRecurring(requireArg(summary, 'summary'), description, rr) ? 0 : 1;
 }
 
-/** recurring-done <task_guid> — 退出码 0=今天已干过。 */
+/** recurring-done <task_guid> [summary] [description] — 退出码 0=本周期内已干过。 */
 export function cmdRecurringDone(args) {
-  return recurringDoneToday(requireArg(args[0], 'task_guid')) ? 0 : 1;
+  const [guid, summary = '', description = ''] = args;
+  return recurringDoneToday(requireArg(guid, 'task_guid'), summary, description) ? 0 : 1;
 }
 
 /** comment <task_guid> <内容…> — 内容含空格未加引号时,自动合并剩余参数。 */

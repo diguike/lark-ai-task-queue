@@ -5,11 +5,11 @@
 #   systemctl --user disable --now lark-ai-task-queue.timer   # 停用
 # OnUnitActiveSec 改成与 config.poll_interval_minutes 一致。
 [Unit]
-Description=每 1 小时触发一次 Lark AI Task Queue
+Description=每 30 分钟触发一次 Lark AI Task Queue
 
 [Timer]
 OnBootSec=2min
-OnUnitActiveSec=60min
+OnUnitActiveSec=30min
 Persistent=true
 
 [Install]

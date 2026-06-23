@@ -61,6 +61,47 @@ export function localDate(ms, tz) {
   return new Intl.DateTimeFormat('en-CA', opts).format(new Date(ms)); // en-CA → YYYY-MM-DD
 }
 
+// 把 epoch 毫秒按指定时区折算成"当日已过分钟数"(0..1439)。tz 为空 → 本机本地时区。
+// 用于活跃时段窗口判定([HH:MM-HH:MM])。
+export function localTimeMinutes(ms, tz) {
+  const opts = { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }; // h23 防止午夜 24:xx
+  if (tz) opts.timeZone = tz;
+  const parts = new Intl.DateTimeFormat('en-CA', opts).formatToParts(new Date(ms));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  return Number(p.hour) * 60 + Number(p.minute);
+}
+
+// 把 epoch 毫秒按指定时区拆成 cron 需要的日历分量。tz 为空 → 本机本地时区。
+// weekday:0=周日..6=周六(对齐 cron)。供 cron 表达式匹配用。
+// formatter 按 tz 缓存:cronDue 会逐分钟回扫(最坏数万次),避免每次重建 Intl 实例。
+const WEEKDAY_NUM = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+const _zonedFmtCache = new Map();
+function zonedFormatter(tz) {
+  const key = tz || '';
+  let fmt = _zonedFmtCache.get(key);
+  if (!fmt) {
+    const opts = {
+      minute: '2-digit', hour: '2-digit', day: '2-digit',
+      month: '2-digit', weekday: 'short', hourCycle: 'h23',
+    };
+    if (tz) opts.timeZone = tz;
+    fmt = new Intl.DateTimeFormat('en-US', opts);
+    _zonedFmtCache.set(key, fmt);
+  }
+  return fmt;
+}
+export function zonedParts(ms, tz) {
+  const parts = zonedFormatter(tz).formatToParts(new Date(ms));
+  const p = Object.fromEntries(parts.map((x) => [x.type, x.value]));
+  return {
+    minute: Number(p.minute),
+    hour: Number(p.hour),
+    day: Number(p.day),
+    month: Number(p.month),
+    weekday: WEEKDAY_NUM[p.weekday],
+  };
+}
+
 // 当前时间戳字符串 YYYY-MM-DD HH:MM:SS(指定时区或本地)。
 export function nowStamp(tz) {
   const d = new Date();

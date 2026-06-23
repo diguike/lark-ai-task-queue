@@ -9,5 +9,5 @@ SHELL=/bin/bash
 HOME=__HOME__
 PATH=__NODE_BIN__:/usr/local/bin:/usr/bin:/bin
 
-# 每小时整点跑一轮(改成与 config.poll_interval_minutes 一致):
-0 * * * * cd __ROOT__ && node bin/larkaq run >> __ROOT__/logs/cron.log 2>&1
+# 每 30 分钟跑一轮(改成与 config.poll_interval_minutes 一致):
+*/30 * * * * cd __ROOT__ && node bin/larkaq run >> __ROOT__/logs/cron.log 2>&1

@@ -6,7 +6,26 @@
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-06-24
+
 ### Added
+- **cron 表达式调度 + 每日定点**:标题/描述带 `[cron: 分 时 日 月 周]`(标准 5 字段,支持
+  `*` / `a-b` / `*/n` / `a-b/n` / 列表,周字段 `0`/`7` 皆为周日,日与周都受限时按 Vixie cron 取并集)
+  可精确控制时点,如 `[cron: 0 9 * * 1-5]`(工作日 9 点)。`[每日 09:00]`/`[每天 18:00]` 是其语法糖。
+  判定语义为"上次成功后是否又跨过一个 cron 匹配点"(轮询式,逐分钟回扫最多 35 天封顶)。优先级
+  **cron > 间隔 > 自然日标记**。叠加活跃时段窗口时,cron 命中点本身须落在窗口内才算到期
+  (窗口外的命中点不补跑)。写错的频率标记(`[cron: 99 …]`/`[每日 25:00]`/`[每0分钟]`/`[25:00-26:00]`)
+  按 fail-closed 处理:仍视为重复任务(不会被当一次性任务划掉),但本轮不执行、停在队列等修正。
+  `zonedParts` 的 `Intl` formatter 按时区缓存(最坏回扫提速约 10×)。纯逻辑
+  (`parseCronField`/`parseCronExpr`/`parseSchedule`/`cronMatches`/`cronDue`/`hasScheduleMarker`、
+  `util.zonedParts`)有单测。
+- **小时/分钟级重复任务**:标题/描述带 `[每30分钟]`/`[每1小时]`/`[每2小时]`/`[每2天]`
+  (也认 `[每30m]`/`[每2h]`/`[每1d]`)→ 按"距上次成功结果评论的时长 ≥ 间隔"滚动判定,
+  补齐飞书原生重复规则只到天/周的空缺。无参数标记 `[每日]` 仍按自然日对齐(向后兼容)。
+  可叠加活跃时段窗口 `[09:00-22:00]`(支持跨午夜如 `[22:00-02:00]`),窗口外即便到点也不执行。
+  纯逻辑(`parseEveryInterval` / `parseActiveWindow` / `withinActiveWindow` /
+  `lastRecurringSuccessAt`)有单测。注意:间隔精度受守护进程心跳频率限制,半小时级需把
+  `poll_interval_minutes` 与调度器触发间隔压到 5–10 分钟。
 - **尊重飞书"开始时间"**:设了开始时间的任务,到点前不会被执行(`queue pull` 预筛阶段
   按 `start.timestamp` 过滤;`is_all_day` 则按时区当天起算)。未设开始时间的任务行为不变。
 - **自然语言配置 `larkaq config nl "<意图>"`**:把意图交给 Claude,按配置 Schema 翻成结构化改动,
@@ -19,15 +38,15 @@
 - 英文 `README.en.md` 与架构/状态机图(`ARCHITECTURE.md`)。
 
 ### Changed
+- **默认轮询间隔 60 → 30 分钟**(`config.example.json` 与三个调度器模板
+  launchd/systemd/cron 同步),以支撑小时/半小时级重复任务的精度。
 - `larkaq install` 登录后**自动写入你本人的 `notify.user_open_id`**(从 `lark-cli auth status`
   的 `openId` 取),不再需要手动查 open_id 才能让 bot 给自己发消息。
+- README 精简:去掉与顶部流程图重复的 ASCII 工作流,新增「更多文档」导航。
 
 ### Removed
 - 删除构建期遗留的 `NOTES.md`(lark-cli 命令摸底,已被 `src/core/lark.mjs` 封装取代)
   与 `prompts/IMPLEMENTATION.md`(把脚手架实现出来的一次性启动提示词,项目已完成)。
-
-### Changed
-- README 精简:去掉与顶部流程图重复的 ASCII 工作流,新增「更多文档」导航。
 
 ### Fixed
 - **Node 23+ 兼容**:新版 `node --test` 不再把 `test/` 当目录(会报 MODULE_NOT_FOUND)。
@@ -65,6 +84,7 @@
 - 初版:把飞书任务清单当作寄给 AI 的待办队列(bash + jq 实现)。前缀自动发现、
   异步人工确认、重复任务、每轮飞书推送、用户态 daemon 与 launchd/cron/systemd 模板。
 
-[Unreleased]: https://github.com/diguike/lark-ai-task-queue/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/diguike/lark-ai-task-queue/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/diguike/lark-ai-task-queue/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/diguike/lark-ai-task-queue/releases/tag/v0.2.0
 [0.1.0]: https://github.com/diguike/lark-ai-task-queue/releases/tag/v0.1.0
