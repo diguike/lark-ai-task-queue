@@ -21,6 +21,7 @@ export const CONFIG_SCHEMA = [
   { path: 'output.doc_folder_token', type: 'string', desc: '文档落到哪个云空间文件夹的 token,空=默认位置', sensitive: true },
   { path: 'output.mark_task_done_on_success', type: 'boolean', desc: '普通任务成功后是否标记完成' },
   { path: 'notify.channel', type: 'enum: off|bot|webhook', desc: '每轮汇总推送渠道' },
+  { path: 'notify.when', type: 'enum: always|on_activity|off', desc: '何时推送:always=每轮都发;on_activity=仅本轮有实质活动(完成/等确认/失败/条件触发)才发(默认);off=从不' },
   { path: 'notify.webhook_url', type: 'string(url)', desc: '飞书自定义机器人 webhook 地址(channel=webhook 时用)', sensitive: true },
   { path: 'logging.local_log_dir', type: '项目内相对路径', desc: '本地日志目录' },
 ];

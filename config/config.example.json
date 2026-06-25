@@ -40,9 +40,10 @@
   },
   "notify": {
     "channel": "bot",
+    "when": "on_activity",
     "user_open_id": "",
     "webhook_url": "",
-    "_comment_notify": "每轮结束发一条飞书汇总。channel 三选一:'off'=不推送;'bot'=同一个应用的机器人私聊你(user_open_id 在 `larkaq install` 登录后会自动写入你本人,无需手动查);'webhook'=飞书群里加'自定义机器人'拿到的 Webhook 地址(填 webhook_url,无需应用 scope/登录,开源最省心)。"
+    "_comment_notify": "channel 选推送渠道:'off'=不推送;'bot'=同一个应用的机器人私聊你(user_open_id 在 `larkaq install` 登录后会自动写入你本人,无需手动查);'webhook'=飞书群里加'自定义机器人'拿到的 Webhook 地址(填 webhook_url,无需应用 scope/登录,开源最省心)。when 控制何时推送,避免无事打扰:'on_activity'(默认)=仅当本轮有实质活动(任务完成并有产出、等你确认、失败、或条件型任务达到通知条件)才推送;纯'无待办/无变化/无未读/波动不大/无需动作'只写日志不推送。'always'=每轮都发汇总(含空轮,旧行为)。'off'=从不推送。注意:无论是否推送,任务级评论(留痕)都照常回写。"
   },
   "logging": {
     "local_log_dir": "logs",

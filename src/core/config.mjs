@@ -54,6 +54,9 @@ export function validateConfig(path, value) {
     case 'notify.channel':
       if (!['off', 'bot', 'webhook'].includes(value)) throw new Error("notify.channel 只能是 off/bot/webhook");
       break;
+    case 'notify.when':
+      if (!['always', 'on_activity', 'off'].includes(value)) throw new Error('notify.when 只能是 always/on_activity/off');
+      break;
     case 'execution.agent':
       // 与 core/engine.mjs 的 SUPPORTED_ENGINES 保持一致(此处硬编码以避免 config↔engine 循环依赖)。
       if (!['claude', 'codex'].includes(value)) throw new Error('execution.agent 只能是 claude/codex');

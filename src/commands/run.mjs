@@ -12,7 +12,7 @@ import { nowStamp, color } from '../util.mjs';
 
 function buildPrompt() {
   const base = readFileSync(resolve(ROOT, 'prompts/run-queue.md'), 'utf8');
-  return `${base}\n项目根目录: ${ROOT}。按上面步骤跑一轮:用 \`larkaq queue pull\` 拉队列,逐条处理(含异步确认/重复任务判型,调用 larkaq 的原子操作),回写飞书,写日志,最后用 \`larkaq notify\` 发飞书汇总。`;
+  return `${base}\n项目根目录: ${ROOT}。按上面步骤跑一轮:用 \`larkaq queue pull\` 拉队列,逐条处理(含异步确认/重复任务判型,调用 larkaq 的原子操作),回写飞书,写日志;最后按步骤 4 的 \`notify.when\` 与"实质活动"规则决定是否调用 \`larkaq notify\`(无实质活动则不推送,不要因为这句话就强行发)。`;
 }
 
 /**
@@ -48,8 +48,13 @@ export async function runRound({ dryRun = false } = {}) {
     }
 
     if (n === 0) {
-      logLine('no actionable tasks this round (skip claude)');
-      console.log('无可处理任务,跳过 claude。');
+      logLine('no actionable tasks this round (skip executor)');
+      // on_activity(默认)/off 空轮静默;always 才发一条"无待办"心跳——此时执行器没被
+      // 唤起,只能由框架直接推送(notify() 内部仍受 when=off / channel 等闸门约束)。
+      if (getConfig('notify.when', 'on_activity') === 'always') {
+        await notify(`🤖 Lark AI Runner · 本轮无待办,队列为空(${nowStamp()})`);
+      }
+      console.log('无可处理任务,跳过执行器。');
       return 0;
     }
 

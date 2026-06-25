@@ -56,6 +56,8 @@ test('validateConfig: 拦截非法值,放行未知键', async () => {
   assert.throws(() => validateConfig('execution.max_tasks_per_run', -3), /正整数/);
   assert.throws(() => validateConfig('execution.poll_interval_minutes', 0), /正数/);
   assert.throws(() => validateConfig('notify.channel', 'sms'), /off\/bot\/webhook/);
+  assert.throws(() => validateConfig('notify.when', 'sometimes'), /always\/on_activity\/off/);
+  assert.throws(() => validateConfig('execution.agent', 'gpt'), /claude\/codex/);
   assert.throws(() => validateConfig('execution.timezone', 'Mars/Phobos'), /非法时区/);
   assert.throws(() => validateConfig('queue.state_file', '/etc/passwd'), /相对路径/);
   assert.throws(() => validateConfig('queue.state_file', '../escape'), /相对路径/);
@@ -65,6 +67,10 @@ test('validateConfig: 拦截非法值,放行未知键', async () => {
   assert.doesNotThrow(() => validateConfig('execution.timezone', ''));
   assert.doesNotThrow(() => validateConfig('execution.timezone', 'Asia/Shanghai'));
   assert.doesNotThrow(() => validateConfig('notify.channel', 'webhook'));
+  assert.doesNotThrow(() => validateConfig('notify.when', 'on_activity'));
+  assert.doesNotThrow(() => validateConfig('notify.when', 'always'));
+  assert.doesNotThrow(() => validateConfig('notify.when', 'off'));
+  assert.doesNotThrow(() => validateConfig('execution.agent', 'codex'));
   assert.doesNotThrow(() => validateConfig('some.unknown.key', 'whatever'));
 
   delete process.env.RUNNER_ROOT;

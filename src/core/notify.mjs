@@ -13,9 +13,14 @@ export function webhookTextPayload(text) {
 /**
  * 发送本轮汇总。返回一句人类可读的结果说明。
  * **保证不抛错**(推送失败只返回提示),避免在错误处理路径里二次抛错掩盖原始错误。
+ *
+ * notify.when=off 在此硬跳过(框架级保证,不依赖提示词自觉);on_activity/always 是否
+ * 调用本函数由提示词(run-queue.md 步骤 4)按"本轮是否有实质活动"决策——框架拿不到
+ * 活动上下文,无法替它判断,只能保证 off 一定静音。
  * @param {string} markdown
  */
 export async function notify(markdown) {
+  if (getConfig('notify.when', 'on_activity') === 'off') return 'notify: when=off,跳过';
   const channel = getConfig('notify.channel', 'bot');
   try {
     switch (channel) {

@@ -7,6 +7,12 @@
 ## [Unreleased]
 
 ### Added
+- **按需推送(`notify.when`)**:默认 `on_activity` —— **无事不打扰**,仅当本轮有实质活动
+  (任务完成并有产出/动作、等你确认、失败、或条件型任务达到通知条件)才推送飞书消息;
+  空轮、"无未读/波动不大/无变化/无需动作"只写本地日志、不推送。另可 `always`(每轮都发,
+  旧行为)/`off`(从不;框架级硬跳过,不依赖提示词)。**任务级评论(留痕)与推送解耦**:
+  重复任务"检查后无变化"仍回写一条简短评论让间隔/cron 状态机知道本周期已查过,但不触发推送。
+  `run-queue.md` 步骤 4 重写为事件驱动判定;`notify.when` 接入校验、`config nl` 白名单与 `doctor`。
 - **可插拔 AI 执行器(`execution.agent`)**:无人值守执行队列的编码代理可配置,
   默认 `claude`(Claude Code),可选 `codex`(OpenAI Codex CLI)。新增适配层
   `core/engine.mjs`,把"非交互 + 跳过确认 + 能跑 shell/联网"的契约收敛成纯函数
@@ -14,6 +20,9 @@
   codex → `exec --dangerously-bypass-approvals-and-sandbox -C … <prompt>`)。
   `run`、`doctor` 与 `config nl` 的可设字段均接入;`run-queue.md` 提示词两引擎通用。
   纯逻辑有单测。`config nl` 的一次性配置推理仍固定用 claude(其 stdout 为可解析 JSON)。
+
+### Changed
+- 空队列不再推送"本轮无待办"(旧版会发一条),改为静默只记日志。
 
 ## [0.3.0] - 2026-06-24
 

@@ -56,6 +56,8 @@ export function cmdDoctor() {
     pass(`执行引擎 = ${engine}${engine === 'claude' ? '(默认)' : ''}`);
     const prefix = getConfig('queue.tasklist_name_prefix', '');
     prefix ? pass(`队列前缀 = "${prefix}"`) : note('未设 queue.tasklist_name_prefix');
+    const when = getConfig('notify.when', 'on_activity');
+    pass(`推送时机 when=${when}${when === 'on_activity' ? '(默认,无实质活动不打扰)' : ''}`);
     const ch = getConfig('notify.channel', 'bot');
     if (ch === 'off') pass('推送 channel=off(不推送)');
     else if (ch === 'bot') {
